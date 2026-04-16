@@ -4,9 +4,17 @@ import Link from 'next/link';
 
 interface Props {
   message?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  href?: string;
 }
 
-export default function EmptyState({ message = 'No wishes found' }: Props) {
+export default function EmptyState({ 
+  message = 'No wishes found', 
+  actionLabel = 'Create a Wish',
+  onAction,
+  href = '/create'
+}: Props) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center border-2 border-dashed border-[#1e1e2e] rounded-3xl">
       <div className="w-20 h-20 bg-[#12121a] border border-[#1e1e2e] rounded-full flex items-center justify-center mb-6 shadow-xl shadow-black/50">
@@ -28,15 +36,28 @@ export default function EmptyState({ message = 'No wishes found' }: Props) {
       <p className="text-gray-400 mb-8 max-w-sm">
         Be the first to create a wish on WishPool and start your crowdfunding journey!
       </p>
-      <Link
-        href="/create-wish"
-        className="px-8 py-3 bg-[#f59e0b] text-black font-bold rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-[#f59e0b]/20"
-      >
-        <span>Create a Wish</span>
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </Link>
+      
+      {onAction ? (
+        <button
+          onClick={onAction}
+          className="px-8 py-3 bg-[#f59e0b] text-black font-bold rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-[#f59e0b]/20"
+        >
+          <span>{actionLabel}</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      ) : (
+        <Link
+          href={href}
+          className="px-8 py-3 bg-[#f59e0b] text-black font-bold rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-[#f59e0b]/20"
+        >
+          <span>{actionLabel}</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </Link>
+      )}
     </div>
   );
 }

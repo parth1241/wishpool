@@ -42,6 +42,15 @@ export async function processPayout(
   }
 }
 
+export async function processRefund(
+  toAddress: string,
+  amount: string,
+  memo: string
+): Promise<string | null> {
+  // Re-uses the payout logic as it's a payment from the same escrow account
+  return processPayout(toAddress, amount, memo);
+}
+
 export async function verifyTransaction(txHash: string): Promise<boolean> {
   try {
     const tx = await server.transactions().transaction(txHash).call();

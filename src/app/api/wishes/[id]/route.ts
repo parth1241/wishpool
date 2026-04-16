@@ -26,36 +26,34 @@ export async function PATCH(
 ) {
   try {
     await dbConnect();
-    const { amount, contributorAddress, txHash } = await request.json();
-    
+    const userAddress = request.headers.get('x-user-address');
+    const { title, description } = await request.json();
+
+    if (!userAddress) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const wish = await Wish.findById(params.id);
     if (!wish) {
       return NextResponse.json({ error: 'Wish not found' }, { status: 404 });
     }
 
-    const newRaisedAmount = wish.raisedAmount + amount;
-    const newStatus = newRaisedAmount >= wish.targetAmount ? 'funded' : wish.status;
+    if (wish.creatorAddress !== userAddress) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (wish.status !== 'active') {
+      return NextResponse.json({ error: 'Only active wishes can be edited' }, { status: 400 });
+    }
 
     const updatedWish = await Wish.findByIdAndUpdate(
       params.id,
-      {
-        $inc: { raisedAmount: amount },
-        $push: { 
-          contributions: { 
-            contributorAddress, 
-            amount, 
-            txHash, 
-            timestamp: new Date() 
-          } 
-        },
-        $set: { status: newStatus }
-      },
+      { $set: { title, description } },
       { new: true }
     );
 
     cache.bust('wishes');
-    cache.bust(`wishes_active`);
-    cache.bust(`wishes_funded`);
+    cache.bust('wishes_active');
 
     return NextResponse.json(updatedWish);
   } catch (error: any) {

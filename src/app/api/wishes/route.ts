@@ -20,6 +20,20 @@ export async function GET(request: Request) {
     const query = status ? { status } : {};
     const wishes = await Wish.find(query).sort({ createdAt: -1 });
     
+    // Lazy expiration: mark active wishes as expired if deadline passed
+    const now = new Date();
+    await Promise.all(
+      wishes.map(async (wish) => {
+        if (wish.status === 'active' && new Date(wish.deadline) < now) {
+          wish.status = 'expired';
+          await wish.save();
+          cache.bust('wishes');
+          cache.bust('wishes_active');
+          cache.bust('wishes_expired');
+        }
+      })
+    );
+    
     cache.set(cacheKey, wishes, 30);
     
     return NextResponse.json(wishes);
