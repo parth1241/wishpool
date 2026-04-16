@@ -6,11 +6,11 @@ export async function processPayout(
   toAddress: string,
   amount: string,
   memo: string
-): Promise<string | null> {
+): Promise<{ success: boolean; hash?: string; error?: string }> {
   const secret = process.env.STELLAR_ESCROW_SECRET;
   if (!secret) {
     console.error('[Payout] CRITICAL: STELLAR_ESCROW_SECRET is not set in environment.');
-    return null;
+    return { success: false, error: 'Escrow secret key not configured on server.' };
   }
 
   try {
@@ -24,8 +24,9 @@ export async function processPayout(
     console.log(`[Payout] Escrow Balance: ${nativeBalance} XLM. Required: ${amount} XLM + fees.`);
 
     if (parseFloat(nativeBalance) < parseFloat(amount)) {
-      console.error(`[Payout] FAILED: Escrow account has insufficient funds (${nativeBalance} XLM) to pay ${amount} XLM.`);
-      return null;
+      const err = `Escrow account has insufficient funds (${nativeBalance} XLM) to pay ${amount} XLM.`;
+      console.error(`[Payout] FAILED: ${err}`);
+      return { success: false, error: err };
     }
 
     // Check Destination and choose operation
@@ -61,19 +62,22 @@ export async function processPayout(
     
     const result = await server.submitTransaction(transaction);
     console.log(`[Payout] SUCCESS! Transaction Hash: ${result.hash}`);
-    return result.hash;
+    return { success: true, hash: result.hash };
   } catch (error: any) {
     console.error('[Payout] FAILED with Error:');
     
     // Extract specific Stellar error codes if available
     const resultCodes = error.response?.data?.extras?.result_codes;
+    let errorMsg = error.message;
+
     if (resultCodes) {
-      console.error(`[Payout] Stellar Result Codes: ${JSON.stringify(resultCodes)}`);
+      errorMsg = `Stellar Error: ${JSON.stringify(resultCodes)}`;
+      console.error(`[Payout] Stellar Result Codes: ${errorMsg}`);
     } else {
       console.error(`[Payout] Error Message: ${error.message}`);
     }
     
-    return null;
+    return { success: false, error: errorMsg };
   }
 }
 

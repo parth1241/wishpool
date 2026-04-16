@@ -28,7 +28,6 @@ export async function POST(request: Request) {
     }
 
     const newRaisedAmount = wish.raisedAmount + Number(amount);
-    const becameFunded = wish.status !== 'funded' && newRaisedAmount >= wish.targetAmount;
     const newStatus = newRaisedAmount >= wish.targetAmount ? 'funded' : wish.status;
 
     const updatedWish = await Wish.findByIdAndUpdate(
@@ -53,17 +52,17 @@ export async function POST(request: Request) {
     // If it needs payout, trigger the process from escrow to creator
     if (needsPayout) {
       console.log(`[Trigger] Wish ${wishId} is funded and needs payout! (Raised: ${newRaisedAmount}, Target: ${wish.targetAmount})`);
-      const payoutHash = await processPayout(
+      const payoutResult = await processPayout(
         wish.creatorAddress,
         newRaisedAmount.toString(),
         `WishPool Payout: ${wish.title}`
       );
       
-      if (payoutHash) {
-        console.log(`[Trigger] Payout successful for ${wishId}! Recording hash: ${payoutHash}`);
-        await Wish.findByIdAndUpdate(wishId, { $set: { payoutHash } });
+      if (payoutResult.success && payoutResult.hash) {
+        console.log(`[Trigger] Payout successful for ${wishId}! Recording hash: ${payoutResult.hash}`);
+        await Wish.findByIdAndUpdate(wishId, { $set: { payoutHash: payoutResult.hash } });
       } else {
-        console.error(`[Trigger] Payout call returned null for wish ${wishId}. Check Stellar logs above.`);
+        console.error(`[Trigger] Payout FAILED for wish ${wishId}: ${payoutResult.error}`);
       }
     } else {
       console.log(`[Trigger] Wish ${wishId} contribution processed. Needs payout: ${needsPayout} (Funded: ${newRaisedAmount >= wish.targetAmount}, Hash exists: ${!!wish.payoutHash})`);

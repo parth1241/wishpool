@@ -40,15 +40,16 @@ export async function POST(
 
     console.log(`[Manual Payout] Request received for wish ${params.id} from creator ${userAddress}`);
     
-    const payoutHash = await processPayout(
+    // Execute payout and get detailed result
+    const payoutResult = await processPayout(
       wish.creatorAddress,
       wish.raisedAmount.toString(),
       `WishPool Payout: ${wish.title}`
     );
 
-    if (payoutHash) {
-      console.log(`[Manual Payout] Success for wish ${params.id}! Hash: ${payoutHash}`);
-      wish.payoutHash = payoutHash;
+    if (payoutResult.success && payoutResult.hash) {
+      console.log(`[Manual Payout] Success for wish ${params.id}! Hash: ${payoutResult.hash}`);
+      wish.payoutHash = payoutResult.hash;
       await wish.save();
       
       cache.bust('wishes');
@@ -56,11 +57,13 @@ export async function POST(
 
       return NextResponse.json({
         message: 'Payout successful',
-        hash: payoutHash
+        hash: payoutResult.hash
       });
     } else {
-      console.error(`[Manual Payout] FAILED for wish ${params.id}. Check logs for Stellar result codes.`);
-      return NextResponse.json({ error: 'Payout failed on Stellar network' }, { status: 500 });
+      console.error(`[Manual Payout] FAILED for wish ${params.id}: ${payoutResult.error}`);
+      return NextResponse.json({ 
+        error: payoutResult.error || 'Payout failed on Stellar network' 
+      }, { status: 500 });
     }
   } catch (error: any) {
     console.error('Manual payout error:', error);
