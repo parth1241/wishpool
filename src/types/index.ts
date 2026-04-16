@@ -5,7 +5,7 @@ export interface Contribution {
   contributorAddress: string;
   amount: number;
   txHash: string;
-  timestamp: string;
+  timestamp: Date;
 }
 
 export interface Wish {
@@ -15,10 +15,10 @@ export interface Wish {
   creatorAddress: string;
   targetAmount: number;
   raisedAmount: number;
-  deadline: string;
+  deadline: Date;
   status: WishStatus;
   contributions: Contribution[];
-  createdAt: string;
+  createdAt: Date;
   stellarMemo: string;
 }
 

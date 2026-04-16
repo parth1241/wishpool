@@ -18,11 +18,11 @@ const mockWish: Wish = {
   creatorAddress: 'GABC1234567890WXYZ',
   targetAmount: 1000,
   raisedAmount: 500,
-  deadline: '2030-01-01',
+  deadline: new Date('2030-01-01'),
   status: 'active',
   stellarMemo: 'WISH001',
   contributions: [],
-  createdAt: new Date().toISOString()
+  createdAt: new Date()
 };
 
 describe('WishCard Component', () => {
