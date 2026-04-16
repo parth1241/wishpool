@@ -1,6 +1,6 @@
 import { Horizon, TransactionBuilder, Networks, Asset, Memo, Operation, Keypair } from '@stellar/stellar-sdk';
 
-const server = new Horizon.Server('https://horizon-testnet.stellar.org');
+export const server = new Horizon.Server('https://horizon-testnet.stellar.org');
 
 export async function processPayout(
   toAddress: string,

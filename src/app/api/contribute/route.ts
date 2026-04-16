@@ -10,8 +10,7 @@ export async function POST(request: Request) {
     await dbConnect();
     const { wishId, contributorAddress, amount, txHash } = await request.json();
 
-    const isSimulated = txHash.startsWith('SIM_');
-    const isValid = isSimulated ? true : await verifyTransaction(txHash);
+    const isValid = await verifyTransaction(txHash);
     
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid transaction' }, { status: 400 });

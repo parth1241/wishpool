@@ -43,11 +43,14 @@ export default function ContributeModal({ wish, onClose, onSuccess }: Props) {
       const signedXdr = await signTransaction(xdr, { network: 'TESTNET' });
 
       setStatusText('Broadcasting to Stellar Testnet...');
-      // Note: In a production environment, you would use the Stellar SDK to submit this XDR.
-      // For this demo, we simulate success after the user signs.
-      await new Promise(r => setTimeout(r, 2000));
       
-      const txHash = 'SIM_' + Math.random().toString(36).substring(2, 12).toUpperCase();
+      const { server } = await import('@/lib/stellar');
+      const { Transaction, Networks } = await import('@stellar/stellar-sdk');
+      
+      const transaction = new Transaction(signedXdr, Networks.TESTNET);
+      const result = await server.submitTransaction(transaction);
+      
+      const txHash = result.hash;
       
       setStatusText('Confirming on WishPool...');
       const res = await fetch('/api/contribute', {
