@@ -7,7 +7,7 @@ export function formatXLM(amount: number): string {
 
 export function truncateAddress(address: string): string {
   if (!address) return '';
-  return `${address.slice(0, 5)}...${address.slice(-4)}`;
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
 }
 
 export function isExpired(deadline: Date): boolean {

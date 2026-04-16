@@ -1,0 +1,43 @@
+name: WishPool CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Linting
+      run: npm run lint
+      continue-on-error: true
+
+    - name: Run Tests
+      run: npm test
+      env:
+        MONGODB_URI: "mongodb://localhost:27017/wishpool-test"
+        NEXT_PUBLIC_STELLAR_NETWORK: "TESTNET"
+        NEXT_PUBLIC_ESCROW_ADDRESS: "GBRPYHIL2CI3FNMWB27S6GZ66W5A6IHYZ3BML5U3BH522E3Y464N6SGR"
+
+    - name: Build Check
+      run: npm run build
+      env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        NEXT_PUBLIC_STELLAR_NETWORK: TESTNET
+        NEXT_PUBLIC_ESCROW_ADDRESS: ${{ secrets.NEXT_PUBLIC_ESCROW_ADDRESS }}
+        STELLAR_ESCROW_SECRET: ${{ secrets.STELLAR_ESCROW_SECRET }}
+        NEXT_PUBLIC_APP_URL: https://wishpool-stellar.vercel.app

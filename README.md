@@ -13,13 +13,21 @@ WishPool is a decentralized crowdfunding platform built on the **Stellar Testnet
 [https://wishpool-stellar.vercel.app](https://wishpool-stellar.vercel.app)
 
 ## 🎥 Demo Video
-[Watch 1-minute demo](https://youtu.be/PLACEHOLDER)
+[Watch the 1-minute demo video](./video/demo.mov)
 
 ## 📸 Screenshots
-*(Add screenshots here)*
+
+### Home Page
+![Home Page](./screenshots/home.png)
+
+### Create a Wish
+![Create Wish](./screenshots/create.png)
+
+### User Dashboard
+![Dashboard](./screenshots/dashboard.png)
 
 ## 📸 Test Output
-*(Add screenshot of jest --coverage output here)*
+![Test Results](./screenshots/tests.png)
 
 ## ✨ Features
 - **Wallet Integration**: Seamless connection with the Freighter wallet.
@@ -96,6 +104,8 @@ wishpool/
 │   ├── types/              # TypeScript Interfaces
 │   └── globals.css         # Global Styles
 ├── tests/                  # Jest Test Suites
+├── screenshots/            # Project Screenshots
+├── video/                  # Demo Video
 ├── tailwind.config.ts      # Tailwind Configuration
 ├── tsconfig.json           # TypeScript Configuration
 └── jest.config.js          # Jest Configuration
