@@ -7,13 +7,19 @@ export async function processPayout(
   amount: string,
   memo: string
 ): Promise<{ success: boolean; hash?: string; error?: string }> {
-  const secret = process.env.STELLAR_ESCROW_SECRET;
-  if (!secret) {
-    console.error('[Payout] CRITICAL: STELLAR_ESCROW_SECRET is not set in environment.');
-    return { success: false, error: 'Escrow secret key not configured on server.' };
-  }
-
   try {
+    const secret = process.env.STELLAR_ESCROW_SECRET;
+    if (!secret) {
+      console.error('[Payout] CRITICAL: STELLAR_ESCROW_SECRET is not set in environment.');
+      return { success: false, error: 'Escrow secret key not configured on server.' };
+    }
+
+    // Basic format validation
+    if (!secret.startsWith('S') || secret.length !== 56) {
+      console.error('[Payout] CRITICAL: STELLAR_ESCROW_SECRET is not a valid Stellar secret key format.');
+      return { success: false, error: 'Invalid Stellar secret key format in server environment (must start with "S" and be 56 chars).' };
+    }
+
     const sourceKeypair = Keypair.fromSecret(secret);
     const sourcePublicKey = sourceKeypair.publicKey();
     console.log(`[Payout] Initializing payout from Escrow: ${sourcePublicKey} to Creator: ${toAddress}`);
