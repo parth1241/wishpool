@@ -85,7 +85,7 @@ export async function processRefund(
   toAddress: string,
   amount: string,
   memo: string
-): Promise<string | null> {
+): Promise<{ success: boolean; hash?: string; error?: string }> {
   // Re-uses the payout logic as it's a payment from the same escrow account
   return processPayout(toAddress, amount, memo);
 }

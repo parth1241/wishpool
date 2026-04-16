@@ -42,12 +42,16 @@ export async function POST(
     // Process refunds
     const results = await Promise.all(
       wish.contributions.map(async (contribution: any) => {
-        const refundHash = await processRefund(
+        const refundResult = await processRefund(
           contribution.contributorAddress,
           contribution.amount.toString(),
           `Refund: ${wish.title}`
         );
-        return { address: contribution.contributorAddress, hash: refundHash };
+        return { 
+          address: contribution.contributorAddress, 
+          hash: refundResult.hash,
+          error: refundResult.error 
+        };
       })
     );
 
