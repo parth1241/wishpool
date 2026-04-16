@@ -23,6 +23,7 @@ const WishSchema = new Schema<IWish>({
   },
   stellarMemo: { type: String, required: true, unique: true },
   contributions: [ContributionSchema],
+  payoutHash: { type: String },
 }, { timestamps: true });
 
 const Wish = models.Wish || model<IWish>('Wish', WishSchema);

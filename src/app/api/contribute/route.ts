@@ -48,10 +48,11 @@ export async function POST(request: Request) {
       { new: true }
     );
 
-    // If it just became funded, trigger the payout from escrow to creator
-    if (becameFunded) {
-      console.log(`Wish ${wishId} is now 100% funded! Triggering payout...`);
-      // We payout the targetAmount (or raisedAmount) to the creatorAddress
+    const needsPayout = newRaisedAmount >= wish.targetAmount && !wish.payoutHash;
+
+    // If it needs payout, trigger the process from escrow to creator
+    if (needsPayout) {
+      console.log(`Wish ${wishId} is funded and needs payout! Triggering...`);
       const payoutHash = await processPayout(
         wish.creatorAddress,
         newRaisedAmount.toString(),
@@ -60,8 +61,9 @@ export async function POST(request: Request) {
       
       if (payoutHash) {
         console.log(`Payout successful! Hash: ${payoutHash}`);
+        await Wish.findByIdAndUpdate(wishId, { $set: { payoutHash } });
       } else {
-        console.warn(`Payout failed for wish ${wishId}. Manual intervention required.`);
+        console.warn(`Payout failed for wish ${wishId}. It will be retried on next contribution or manually.`);
       }
     }
 

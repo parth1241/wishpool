@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: '', description: '' });
   const [refundingIds, setRefundingIds] = useState<string[]>([]);
+  const [payoutingIds, setPayoutingIds] = useState<string[]>([]);
 
   useEffect(() => {
     const address = window.sessionStorage.getItem('wishpool_address');
@@ -92,6 +93,34 @@ export default function DashboardPage() {
       alert('An error occurred during the refund process');
     } finally {
       setRefundingIds(refundingIds.filter(rid => rid !== id));
+    }
+  };
+
+  const handleRetryPayout = async (id: string) => {
+    if (!confirm('This will attempt to transfer the funds from the escrow to your wallet. Proceed?')) return;
+
+    setPayoutingIds([...payoutingIds, id]);
+    try {
+      const res = await fetch(`/api/wishes/${id}/payout`, {
+        method: 'POST',
+        headers: {
+          'x-user-address': userAddress || '',
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        alert(data.message);
+        setWishes(wishes.map(w => w._id === id ? { ...w, payoutHash: data.hash } : w));
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to process payout');
+      }
+    } catch (error) {
+      console.error('Error processing payout:', error);
+      alert('An error occurred during the payout process');
+    } finally {
+      setPayoutingIds(payoutingIds.filter(pid => pid !== id));
     }
   };
 
@@ -218,6 +247,30 @@ export default function DashboardPage() {
                         {refundingIds.includes(wish._id) ? 'Processing Refunds...' : 'Refund Contributors'}
                       </button>
                     )}
+                    {wish.status === 'funded' && !wish.payoutHash && (
+                      <button
+                        onClick={() => handleRetryPayout(wish._id)}
+                        disabled={payoutingIds.includes(wish._id)}
+                        className="flex-1 py-2 bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20 rounded-xl text-xs font-bold hover:bg-[#f59e0b] hover:text-black transition-all disabled:opacity-50"
+                      >
+                        {payoutingIds.includes(wish._id) ? 'Processing Payout...' : 'Finalize Payout'}
+                      </button>
+                    )}
+                  </div>
+                )}
+                
+                {/* Payout Info */}
+                {wish.payoutHash && (
+                  <div className="pt-2">
+                    <a 
+                      href={`https://stellar.expert/explorer/testnet/tx/${wish.payoutHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-[10px] text-green-400 hover:text-green-300 transition-colors bg-green-500/5 p-2 rounded-lg border border-green-500/10"
+                    >
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                      Payout Successful • View Transaction
+                    </a>
                   </div>
                 )}
               </div>

@@ -20,6 +20,7 @@ export interface Wish {
   contributions: Contribution[];
   createdAt: Date;
   stellarMemo: string;
+  payoutHash?: string;
 }
 
 export interface CreateWishInput {
