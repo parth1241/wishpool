@@ -9,35 +9,70 @@ export async function processPayout(
 ): Promise<string | null> {
   const secret = process.env.STELLAR_ESCROW_SECRET;
   if (!secret) {
-    console.error('STELLAR_ESCROW_SECRET is not set');
+    console.error('[Payout] CRITICAL: STELLAR_ESCROW_SECRET is not set in environment.');
     return null;
   }
 
   try {
     const sourceKeypair = Keypair.fromSecret(secret);
     const sourcePublicKey = sourceKeypair.publicKey();
+    console.log(`[Payout] Initializing payout from Escrow: ${sourcePublicKey} to Creator: ${toAddress}`);
 
+    // Check Escrow Balance
     const account = await server.loadAccount(sourcePublicKey);
+    const nativeBalance = account.balances.find(b => b.asset_type === 'native')?.balance || '0';
+    console.log(`[Payout] Escrow Balance: ${nativeBalance} XLM. Required: ${amount} XLM + fees.`);
+
+    if (parseFloat(nativeBalance) < parseFloat(amount)) {
+      console.error(`[Payout] FAILED: Escrow account has insufficient funds (${nativeBalance} XLM) to pay ${amount} XLM.`);
+      return null;
+    }
+
+    // Check Destination and choose operation
+    let operation;
+    try {
+      await server.loadAccount(toAddress);
+      console.log(`[Payout] Destination account ${toAddress} exists. Using payment operation.`);
+      operation = Operation.payment({
+        destination: toAddress,
+        asset: Asset.native(),
+        amount: amount,
+      });
+    } catch (e) {
+      console.warn(`[Payout] Destination account ${toAddress} does not exist. Using createAccount operation.`);
+      operation = Operation.createAccount({
+        destination: toAddress,
+        startingBalance: amount,
+      });
+    }
+
+    console.log(`[Payout] Building Transaction with memo: ${memo}...`);
     const transaction = new TransactionBuilder(account, {
       fee: '1000',
       networkPassphrase: Networks.TESTNET,
     })
-      .addOperation(
-        Operation.payment({
-          destination: toAddress,
-          asset: Asset.native(),
-          amount: amount,
-        })
-      )
+      .addOperation(operation)
       .addMemo(Memo.text(memo))
-      .setTimeout(30)
+      .setTimeout(60)
       .build();
 
     transaction.sign(sourceKeypair);
+    console.log(`[Payout] Broadcasting Transaction...`);
+    
     const result = await server.submitTransaction(transaction);
+    console.log(`[Payout] SUCCESS! Transaction Hash: ${result.hash}`);
     return result.hash;
-  } catch (error) {
-    console.error('Error processing payout:', error);
+  } catch (error: any) {
+    console.error('[Payout] FAILED with Error:');
+    
+    // Extract specific Stellar error codes if available
+    const resultCodes = error.response?.data?.extras?.result_codes;
+    if (resultCodes) {
+      console.error(`[Payout] Stellar Result Codes: ${JSON.stringify(resultCodes)}`);
+    } else {
+      console.error(`[Payout] Error Message: ${error.message}`);
+    }
+    
     return null;
   }
 }

@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     // If it needs payout, trigger the process from escrow to creator
     if (needsPayout) {
-      console.log(`Wish ${wishId} is funded and needs payout! Triggering...`);
+      console.log(`[Trigger] Wish ${wishId} is funded and needs payout! (Raised: ${newRaisedAmount}, Target: ${wish.targetAmount})`);
       const payoutHash = await processPayout(
         wish.creatorAddress,
         newRaisedAmount.toString(),
@@ -60,11 +60,13 @@ export async function POST(request: Request) {
       );
       
       if (payoutHash) {
-        console.log(`Payout successful! Hash: ${payoutHash}`);
+        console.log(`[Trigger] Payout successful for ${wishId}! Recording hash: ${payoutHash}`);
         await Wish.findByIdAndUpdate(wishId, { $set: { payoutHash } });
       } else {
-        console.warn(`Payout failed for wish ${wishId}. It will be retried on next contribution or manually.`);
+        console.error(`[Trigger] Payout call returned null for wish ${wishId}. Check Stellar logs above.`);
       }
+    } else {
+      console.log(`[Trigger] Wish ${wishId} contribution processed. Needs payout: ${needsPayout} (Funded: ${newRaisedAmount >= wish.targetAmount}, Hash exists: ${!!wish.payoutHash})`);
     }
 
     cache.bust('wishes');
