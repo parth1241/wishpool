@@ -23,12 +23,13 @@ WishPool is a decentralized crowdfunding platform built on the **Stellar Testnet
 
 ## ✨ Features
 - **Wallet Integration**: Seamless connection with the Freighter wallet.
-- **Wish Creation**: 3-step intuitive form to launch crowdfunding campaigns with set targets and deadlines.
-- **Direct Contributions**: Fund wishes directly using XLM on the Stellar Testnet.
-- **Stellar Explorer Integration**: Links to stellar.expert for transparent transaction verification.
-- **Live Tracking**: Real-time progress bars and countdown timers for every wish.
-- **In-memory Caching**: Fast data retrieval for wish listings using a custom TTL-based cache.
-- **Responsive Design**: Premium dark mode UI built with TailwindCSS, optimized for all devices.
+- **Wish Management Dashboard**: A secure hub for creators to track funding, edit wish details, and manage payouts.
+- **Direct On-Chain Contributions**: Real-time XLM transfers from supporter wallets to the WishPool Escrow.
+- **Automated Payouts**: Instant funds delivery to creators upon reaching 100% funding, powered by server-side Stellar automation.
+- **Bulk Refund System**: Transparent one-click refunds for contributors if a wish expires without meeting its goal.
+- **On-Chain Verification**: Robust tracking of `payoutHash` to ensure transparency and prevent double-payments.
+- **Live Lifecycle Tracking**: Automatic transitions between `active`, `funded`, `expired`, and `refunded` statuses.
+- **Premium UI**: Sleek, high-performance dark mode interface built with TailwindCSS and optimized with in-memory caching.
 
 ## 🛠️ Tech Stack
 - **Framework**: Next.js 14 (App Router)
@@ -37,15 +38,15 @@ WishPool is a decentralized crowdfunding platform built on the **Stellar Testnet
 - **Wallet**: @stellar/freighter-api
 - **Database**: MongoDB Atlas with Mongoose
 - **Styling**: TailwindCSS
-- **State Management**: React Hooks
+- **State Management**: React Hooks & Session-based persistence
 - **Testing**: Jest & React Testing Library
-- **Authentication**: Wallet-based (Stellar Address)
 
 ## ⛓️ How Stellar Integration Works
-1. **Contributions**: When a user funds a wish, a payment transaction is built using the `@stellar/stellar-sdk` and signed via the **Freighter wallet**.
-2. **Escrow**: Funds are sent to a secure escrow account on the Stellar Testnet.
-3. **Memo-based Tracking**: Each wish has a unique `stellarMemo` (8-character nanoid). This memo is attached to every contribution transaction, allowing the backend to associate incoming payments with specific wishes via the Stellar Horizon API.
-4. **Verification**: The backend verifies the transaction hash on the blockchain before updating the `raisedAmount` in the database, ensuring zero-fraud contributions.
+1. **Real-Time Contributions**: When a user funds a wish, the transaction is broadcasted to the Stellar Testnet. Funds are held in a secure Escrow address (`GBRP...`).
+2. **Automated Payouts**: When a wish hits its 100% target, the backend automatically builds and signs a transaction from the Escrow to the Creator's specific wallet address.
+3. **Manual Finalization**: Creators can retry failed payouts via their Dashboard, ensuring funds are never "stuck" in escrow.
+4. **Bulk Refunds**: For failed wishes, the creator can trigger a process that loops through all contributions and sends the XLM back to each contributor's address.
+5. **Memo-based Tracking**: Every wish has a unique `stellarMemo`. This is attached to every incoming and outgoing transaction, providing a clear audit trail on-chain.
 
 ## 🚀 Local Setup
 
