@@ -9,6 +9,9 @@ import EmptyState from '@/components/EmptyState';
 import Link from 'next/link';
 
 export default function DashboardPage() {
+  const [wishes, setWishes] = useState<Wish[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userAddress, setUserAddress] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ title: '', description: '' });
   const [refundingIds, setRefundingIds] = useState<string[]>([]);
