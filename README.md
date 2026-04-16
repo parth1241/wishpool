@@ -10,7 +10,7 @@
 WishPool is a decentralized crowdfunding platform built on the **Stellar Testnet**. It allows users to create "Wishes" (crowdfunding campaigns) and receive contributions in XLM. The platform leverages Stellar's speed and low fees to provide a transparent and efficient fundraising experience.
 
 ## 🌐 Live Demo
-[https://wishpool-stellar.vercel.app](https://wishpool-stellar.vercel.app)
+[https://wishpool-stellar.vercel.app]((https://wishpool-eight.vercel.app/))
 
 ## 🎥 Demo Video
 [Watch the 1-minute demo video](./video/demo.mov)
